@@ -14,6 +14,7 @@ void arena_set(Arena* a, size_t size);
 void* arena_alloc(Arena* a, size_t bytes);
 void* arena_realloc(Arena* a, void* data, size_t new_size);
 void arena_free(Arena* a);
+void print_arena(Arena* a);
 
 #endif // LINKED_ARENA_H
 
@@ -114,6 +115,21 @@ void* arena_realloc(Arena* a, void* data, size_t new_size) {
 
     return memory_bite_realloc(a->root, data, new_size);
 }
+
+void print_memory_bite(MemoryBite* b) {
+    printf("%ld", b->size);
+    if (b->next != NULL) {
+        printf(" -> ");
+        print_memory_bite(b->next);
+    } else {
+        printf("\n");
+    }
+}
+
+void print_arena(Arena* a) {
+    if (a->root != NULL) print_memory_bite(a->root);
+}
+
 
 void arena_free(Arena* a) {
     memory_bite_free(a->root);

@@ -23,12 +23,13 @@ void nums_append(Nums* n, int i) {
 int main(void) {
     arena_set(&arena, 1024);
 
-    Nums ns = {0};
-    for (int i = 0; i < 100; ++i) nums_append(&ns, i);
+    Nums ns1 = {0};
+    for (int i = 0; i < 100; ++i) nums_append(&ns1, rand() % 10);
 
-    for (int i = 0; (size_t)i < ns.count; ++i) {
-        printf("%d\n", ns.items[i]);
-    }
+    Nums ns2 = {0};
+    for (int i = 0; i < 100; ++i) nums_append(&ns2, rand() % 10);
+
+    print_arena(&arena);
 
     arena_free(&arena);
     return 0;
