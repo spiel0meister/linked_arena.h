@@ -43,12 +43,23 @@ static void* memory_bite_alloc(MemoryBite* b, size_t bytes) {
 }
 
 static void* memory_bite_realloc(MemoryBite* b, void* data, size_t new_bytes) {
-    if (b == NULL) return NULL;
-    if (b->next == NULL) return NULL;
+    if (b == NULL) assert(0 && "unreachable");
+
+    if (b->next == NULL) {
+        MemoryBite* new_bite = memory_bite_new(new_bytes);
+        if (data != NULL) {
+            memcpy(new_bite->data, data, b->next->size);
+        }
+        b->next = new_bite;
+
+        return b->next->data;
+    }
+
     if (b->next->data == data) {
         assert(new_bytes >= b->next->size);
         MemoryBite* new_bite = memory_bite_new(new_bytes);
         memcpy(new_bite->data, b->next->data, b->next->size);
+        free(b->next);
         b->next = new_bite;
 
         return b->next->data;
@@ -58,7 +69,7 @@ static void* memory_bite_realloc(MemoryBite* b, void* data, size_t new_bytes) {
 }
 
 static void memory_bite_free(MemoryBite* b) {
-    if (b->next != NULL) memory_bite_free(b->next);
+    if (b != NULL && b->next != NULL) memory_bite_free(b->next);
     free(b);
 }
 
@@ -81,13 +92,21 @@ void* arena_alloc(Arena* a, size_t bytes) {
 void* arena_realloc(Arena* a, void* data, size_t new_size) {
     if (a->root == NULL) {
         a->root = memory_bite_new(new_size);
+        a->count += new_size;
+        if (data == NULL) return a->root->data;
+
         memcpy(a->root->data, data, new_size);
         return a->root->data;
     }
 
     if (a->root != NULL && a->root->data == data) {
+        assert(a->root->size <= new_size);
         MemoryBite* new_bite = memory_bite_new(new_size);
+
+        a->count += new_size - a->root->size;
         memcpy(new_bite->data, a->root->data, a->root->size);
+
+        free(a->root);
         a->root = new_bite;
 
         return new_bite->data;
